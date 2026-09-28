@@ -319,8 +319,20 @@ class GoveeLightEntity(LightEntity):
         return self._device.brightness + 1
 
     @property
-    def color_temp(self):
-        """Return the color_temp of the light."""
+    def color_temp_kelvin(self):
+        """Return the current color temperature in Kelvin.
+
+        29.09.2026: Vorher hiess diese Eigenschaft "color_temp" (Home Assistant
+        interpretiert diesen Namen traditionell als Mired, nicht Kelvin -- seit
+        HA 2026.3 wird der Mired-Weg fuer neue color_mode-Lichter gar nicht mehr
+        ausgewertet). self._device.color_temp liefert aber bereits einen echten
+        Kelvin-Wert (siehe async_turn_on: ATTR_COLOR_TEMP_KELVIN wird direkt an
+        set_color_temp() durchgereicht, ohne Mired-Umrechnung). Ohne diese
+        Property blieb color_temp_kelvin im Zustand dauerhaft None -- das
+        Dashboard kannte dadurch keine aktuelle Reglerposition und schickte
+        beim Bedienen "null" statt einer Zahl zurueck, was HA mit
+        "expected int at color_temp_kelvin" ablehnte.
+        """
         return self._device.color_temp
 
     @property
