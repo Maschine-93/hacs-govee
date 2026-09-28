@@ -141,6 +141,10 @@ class GoveeLightEntity(LightEntity):
         self._title = title
         self._coordinator = coordinator
         self._device = device
+        self._color_mode = None  # 28.09.2026: Patch fuer "does not report a color
+        # mode" (Govee-API liefert keinen aktuell aktiven Modus zurueck -- gemerkt
+        # wird stattdessen der zuletzt per async_turn_on gesetzte Modus, siehe
+        # color_mode-Property + backup light_ORIGINAL_28-09.py)
 
     @property
     def entity_registry_enabled_default(self):
@@ -172,6 +176,26 @@ class GoveeLightEntity(LightEntity):
                 color_mode.add(ColorMode.ONOFF)
         return color_mode
 
+    @property
+    def color_mode(self) -> ColorMode | None:
+        """Return the currently active color mode.
+
+        28.09.2026: Die Govee-API liefert keinen aktuell aktiven Modus zurueck
+        (ein Geraet meldet immer beide Werte, Farbe UND Farbtemperatur). Deshalb
+        wird der zuletzt per async_turn_on gesetzte Modus gemerkt; vor dem ersten
+        Befehl faellt es auf den "faehigsten" unterstuetzten Modus zurueck
+        (HS > COLOR_TEMP > BRIGHTNESS > ONOFF). Ohne diese Property lehnt Home
+        Assistant seit 2026.3 jeden light.turn_on-Aufruf ab ("does not report a
+        color mode") -- Upstream-Bug, siehe github.com/LaggAt/hacs-govee Issues
+        #163/#212/#269/#276/#284/#285, PR #289 (unmerged, Stand 28.09.2026).
+        """
+        if self._color_mode is not None:
+            return self._color_mode
+        for mode in (ColorMode.HS, ColorMode.COLOR_TEMP, ColorMode.BRIGHTNESS, ColorMode.ONOFF):
+            if mode in self.supported_color_modes:
+                return mode
+        return None
+
     async def async_turn_on(self, **kwargs):
         """Turn device on."""
         _LOGGER.debug(
@@ -183,6 +207,7 @@ class GoveeLightEntity(LightEntity):
         if ATTR_HS_COLOR in kwargs:
             hs_color = kwargs.pop(ATTR_HS_COLOR)
             just_turn_on = False
+            self._color_mode = ColorMode.HS
             col = color.color_hs_to_RGB(hs_color[0], hs_color[1])
             _, err = await self._hub.set_color(self._device, col)
         if ATTR_BRIGHTNESS in kwargs:
@@ -193,6 +218,7 @@ class GoveeLightEntity(LightEntity):
         if ATTR_COLOR_TEMP_KELVIN in kwargs:
             color_temp = kwargs.pop(ATTR_COLOR_TEMP_KELVIN)
             just_turn_on = False
+            self._color_mode = ColorMode.COLOR_TEMP
             if color_temp > COLOR_TEMP_KELVIN_MAX:
                 color_temp = COLOR_TEMP_KELVIN_MAX
             elif color_temp < COLOR_TEMP_KELVIN_MIN:
@@ -300,12 +326,14 @@ class GoveeLightEntity(LightEntity):
     @property
     def min_color_temp_kelvin(self):
         """Return the coldest color_temp that this light supports."""
-        return COLOR_TEMP_KELVIN_MAX
+        # 28.09.2026: war vertauscht (gab MAX statt MIN zurueck) -- korrigiert.
+        return COLOR_TEMP_KELVIN_MIN
 
     @property
     def max_color_temp_kelvin(self):
         """Return the warmest color_temp that this light supports."""
-        return COLOR_TEMP_KELVIN_MIN
+        # 28.09.2026: war vertauscht (gab MIN statt MAX zurueck) -- korrigiert.
+        return COLOR_TEMP_KELVIN_MAX
 
     @property
     def extra_state_attributes(self):
