@@ -1,5 +1,11 @@
 # 'Govee' integration (fork with color_mode fix)
 
+**Maintained by [@Maschine-93](https://github.com/Maschine-93).** This fork exists because the upstream
+project [asked for someone to take over](#discontinuation---who-wants-to-continue) and has two breaking
+bugs on current Home Assistant versions that were left unfixed for months. If this fork helped you and you
+also want to support the original author who built the whole integration, see the
+[Sponsor section](#sponsor) below for his Buy Me A Coffee link.
+
 **This is a fork of [LaggAt/hacs-govee](https://github.com/LaggAt/hacs-govee).** The upstream project declares
 `supported_color_modes` but never implements the paired `color_mode` property. Since Home Assistant 2026.3
 enforces this strictly, `light.turn_on` / `light.turn_off` fail completely for every color- or color-temp-capable

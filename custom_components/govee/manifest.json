@@ -2,6 +2,7 @@
   "domain": "govee",
   "name": "Govee",
   "codeowners": [
+    "@Maschine-93",
     "@LaggAt"
   ],
   "config_flow": true,
