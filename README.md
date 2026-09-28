@@ -1,3 +1,35 @@
+# 'Govee' integration (fork with color_mode fix)
+
+**This is a fork of [LaggAt/hacs-govee](https://github.com/LaggAt/hacs-govee).** The upstream project declares
+`supported_color_modes` but never implements the paired `color_mode` property. Since Home Assistant 2026.3
+enforces this strictly, `light.turn_on` / `light.turn_off` fail completely for every color- or color-temp-capable
+Govee light with the error `"... does not report a color mode"`. This fork adds the missing `color_mode`
+property (tracks the last mode set via `async_turn_on`, falls back to the most capable supported mode) and
+fixes a second bug where `min_color_temp_kelvin` / `max_color_temp_kelvin` were swapped. See
+[commit df08db9](https://github.com/Maschine-93/hacs-govee/commit/df08db9d1cf3a55ecadafcad4763da74d9bf335e)
+for the full explanation. Relates to upstream issues
+[#163](https://github.com/LaggAt/hacs-govee/issues/163),
+[#212](https://github.com/LaggAt/hacs-govee/issues/212),
+[#269](https://github.com/LaggAt/hacs-govee/issues/269),
+[#276](https://github.com/LaggAt/hacs-govee/issues/276),
+[#284](https://github.com/LaggAt/hacs-govee/issues/284),
+[#285](https://github.com/LaggAt/hacs-govee/issues/285).
+
+## Install this fork via HACS (custom repository)
+
+This fork is not in the default HACS store, so add it manually:
+
+1. In Home Assistant, open **HACS** → **Integrations**.
+2. Tap the **⋮** (three dots, top right) → **Custom repositories**.
+3. **Repository:** `https://github.com/Maschine-93/hacs-govee`, **Category:** `Integration` → **Add**.
+4. Search for **"Govee"** in HACS Integrations, open it, tap **Download**, then **restart Home Assistant**.
+5. Already have the original LaggAt integration installed? Remove it first (Settings → Devices & Services →
+   Govee → delete), then add this fork instead so both don't collide.
+6. Add the integration: **Settings → Devices & Services → + → Govee**. You'll need a Govee API key from the
+   Govee Home app (Account → Settings → About Us → Apply for API Key).
+
+--------------------------------------------------
+
 # 'Govee' integration
 
 The Govee integration allows you to control and monitor lights and switches using the Govee API.
